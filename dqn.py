@@ -132,10 +132,10 @@ def dqn_algorithm(trail_no, verbose=True):
             if (terminal or t_record >= STOP_EPISODE_AT_T) and num_episodes%PRINT_FREQ==0:
                 explore_percent.append(dqn_solver.exploration_rate*100)
                 episodes.append(len(episode_rewards))
-                mean100_rew.append(round(np.mean(episode_rewards[-101:-1]), 1))
+                mean100_rew.append(round(np.mean(episode_rewards[(-1-N_EP_AVG):-1]), 1))
                 steps.append(t)
                 if verbose:
-                    print('Exploration %: '+str(int(dqn_solver.exploration_rate*100))+' ,Episodes: '+str(len(episode_rewards))+' ,Mean_100_reward: '+str(round(np.mean(episode_rewards[-101:-1]), 1))+' ,timestep: '+str(t))
+                    print('Exploration %: '+str(int(dqn_solver.exploration_rate*100))+' ,Episodes: '+str(len(episode_rewards))+' ,Mean_reward: '+str(round(np.mean(episode_rewards[(-1-N_EP_AVG):-1]), 1))+' ,timestep: '+str(t))
 
             if t>TOTAL_TIMESTEPS:
                 output_table = np.stack((explore_percent, episodes, mean100_rew, steps))
@@ -188,6 +188,7 @@ if __name__ == "__main__":
     parser.add_argument("--use_target_network", type=str2bool, default=False,  help="boolean to use target neural network in DQN")
     parser.add_argument('--target_update_frequency',  type=int, default=1, help='timesteps frequency to do weight update from online network to target network')
     parser.add_argument("--verbose", type=str2bool, default=False,  help="print episodic results")
+    parser.add_argument('--n_ep_evg',  type=int, default=100, help='no. of episodes to be considered while computing average reward')
 
     # Reservoir Simulation parameters
     parser.add_argument('--action_steps',  type=int, default=11, help='ResSim parameters: no of actions steps i.e. division of q in given value')
@@ -220,7 +221,7 @@ if __name__ == "__main__":
     K_TYPE = args.k_type
 
     ENV_NAME = args.env_name
-
+    N_EP_AVG = args.n_ep_evg
     GAMMA = args.gamma
     LEARNING_RATE = args.learning_rate
 
