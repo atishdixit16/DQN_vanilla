@@ -95,9 +95,9 @@ def dqn_algorithm(trail_no, verbose=True):
 
     # for reservoir simulation environemnt
     if ENV_NAME=='ResSim-v0':
-        env = resSimEnv_v0(5, n_steps=60, dt=1e-3)
+        env = resSimEnv_v0(action_steps=ACTION_STEPS, nx=NX,ny=NY,lx=LX,ly=LY,n_steps=N_STEP,dt=DT,mu_w =MU_W,mu_o =MU_O,phi=PHI,k=K,k_type=K_TYPE)
     elif ENV_NAME=='ResSim-v1':
-        env = resSimEnv_v1(11, n_steps=60, dt=1e-3)
+        env = resSimEnv_v1(action_steps=ACTION_STEPS,nx=NX,ny=NY,lx=LX,ly=LY,n_steps=N_STEP,dt=DT,mu_w =MU_W,mu_o =MU_O,phi=PHI,k=K,k_type=K_TYPE)
     else:
         env = gym.make(ENV_NAME) 
 
@@ -165,6 +165,8 @@ def str2bool(v):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
+
+    # DQN algorithms parameters
     parser.add_argument('--output_folder', default='results/', help='output filepath')
     parser.add_argument('--env_name', default='CartPole-v0', help='string for a gym environment')
     parser.add_argument('--total_timesteps', type=int, default=10000, help='Total number of timesteps')
@@ -187,7 +189,35 @@ if __name__ == "__main__":
     parser.add_argument('--target_update_frequency',  type=int, default=1, help='timesteps frequency to do weight update from online network to target network')
     parser.add_argument("--verbose", type=str2bool, default=False,  help="print episodic results")
 
+    # Reservoir Simulation parameters
+    parser.add_argument('--action_steps',  type=int, default=11, help='ResSim parameters: no of actions steps i.e. division of q in given value')
+    parser.add_argument('--n_step',  type=int, default=50, help='ResSim parameters: no of steps in one timestep of ressim environment episode ')
+    parser.add_argument('--dt',  type=float, default=1e-3, help='ResSim parameters: timestep size of reservoir simulation in each n_step')
+    parser.add_argument('--mu_w',  type=float, default=1.0, help='ResSim parameters: water viscosity')
+    parser.add_argument('--mu_o',  type=float, default=2.0, help='ResSim parameters: oil viscosity')
+    parser.add_argument('--lx',  type=float, default=1.0, help='ResSim parameters: domain length in x direction')
+    parser.add_argument('--ly',  type=float, default=1.0, help='ResSim parameters: domain length in y direction')
+    parser.add_argument('--nx',  type=int, default=10, help='ResSim parameters: no of cells in x direction ')
+    parser.add_argument('--ny',  type=int, default=10, help='ResSim parameters: no of cells in y direction ')
+    parser.add_argument('--phi',  type=float, default=0.1, help='ResSim parameters: porosity')
+    parser.add_argument('--k',  type=float, default=1.0, help='ResSim parameters: permeability')
+    parser.add_argument('--k_type', default='uniform', help='ResSim parameters: permeability type (uniform or random)')
+        
     args = parser.parse_args()
+    
+    # ResSim parameters:
+    ACTION_STEPS = args.action_steps 
+    N_STEP = args.n_step
+    DT = args.dt
+    MU_W = args.mu_w
+    MU_O = args.mu_o
+    LX = args.lx
+    LY = args.ly
+    NX = args.nx
+    NY = args.ny
+    PHI = args.phi
+    K = args.k
+    K_TYPE = args.k_type
 
     ENV_NAME = args.env_name
 
