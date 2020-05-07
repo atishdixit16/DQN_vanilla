@@ -71,15 +71,14 @@ class DQNSolver:
         q_t = self.model.predict(state_np)
         if USE_TARGET_NETWORK:
             q_t1 = self.target_model.predict(state_next_np)
-            if DOUBLE_DQN:
-                ind = np.argmax(q_t1, axis=1)
         else:
             q_t1 = self.model.predict(state_next_np)
         q_t1_best = np.max(q_t1, axis=1)
-        if DOUBLE_DQN:
-            q_t1 = self.model.predict(state_next_np)
+        if DOUBLE_DQN and USE_TARGET_NETWORK:
+            q_t1_local = self.model.predict(state_next_np)
+            ind = np.argmax(q_t1_local, axis=1)
         for i in range(BATCH_SIZE):
-            if DOUBLE_DQN:
+            if DOUBLE_DQN and USE_TARGET_NETWORK:
                 q_t1_best[i] = q_t1[i,ind[i]]
             q_t[i,int(action_np[i])] = reward_np[i] + GAMMA*(1-done_np[i])*q_t1_best[i]
         # train the DQN network
