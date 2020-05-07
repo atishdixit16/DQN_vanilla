@@ -71,10 +71,16 @@ class DQNSolver:
         q_t = self.model.predict(state_np)
         if USE_TARGET_NETWORK:
             q_t1 = self.target_model.predict(state_next_np)
+            if DOUBLE_DQN:
+                ind = np.argmax(q_t1, axis=1)
         else:
             q_t1 = self.model.predict(state_next_np)
         q_t1_best = np.max(q_t1, axis=1)
+        if DOUBLE_DQN:
+            q_t1 = self.model.predict(state_next_np)
         for i in range(BATCH_SIZE):
+            if DOUBLE_DQN:
+                q_t1_best[i] = q_t1[i,ind[i]]
             q_t[i,int(action_np[i])] = reward_np[i] + GAMMA*(1-done_np[i])*q_t1_best[i]
         # train the DQN network
         self.model.fit(state_np, q_t, verbose=0)
@@ -193,6 +199,7 @@ if __name__ == "__main__":
     parser.add_argument("--verbose", type=str2bool, default=False,  help="print episodic results")
     parser.add_argument('--n_ep_avg',  type=int, default=100, help='no. of episodes to be considered while computing average reward')
     parser.add_argument("--save_model", type=str2bool, default=False,  help="boolean to specify whether the model is to be saved")
+    parser.add_argument("--double_dqn", type=str2bool, default=False,  help="boolean to specify whether to employ double DQN")
 
     # Reservoir Simulation parameters
     parser.add_argument('--action_steps',  type=int, default=11, help='ResSim parameters: no of actions steps i.e. division of q in given value')
@@ -226,6 +233,7 @@ if __name__ == "__main__":
 
     ENV_NAME = args.env_name
     N_EP_AVG = args.n_ep_avg
+    DOUBLE_DQN = args.double_dqn
     SAVE_MODEL = args.save_model
     GAMMA = args.gamma
     LEARNING_RATE = args.learning_rate
