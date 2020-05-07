@@ -143,6 +143,9 @@ def dqn_algorithm(trail_no, verbose=True):
                     os.makedirs(FILE_PATH)
                 file_name = str(FILE_PATH)+'expt'+str(trail_no)+'.csv'
                 np.savetxt(file_name, np.transpose(output_table), delimiter=',', header='Exploration %,Episodes,Rewards,Timestep')
+                if SAVE_MODEL:
+                    file_name = str(FILE_PATH)+'model'+str(trail_no)+'.h5'
+                    dqn_solver.model.save(file_name)
                 return
             dqn_solver.experience_replay()
             if USE_TARGET_NETWORK and t%TARGET_UPDATE_FREQUENCY==0:
@@ -188,7 +191,8 @@ if __name__ == "__main__":
     parser.add_argument("--use_target_network", type=str2bool, default=False,  help="boolean to use target neural network in DQN")
     parser.add_argument('--target_update_frequency',  type=int, default=1, help='timesteps frequency to do weight update from online network to target network')
     parser.add_argument("--verbose", type=str2bool, default=False,  help="print episodic results")
-    parser.add_argument('--n_ep_evg',  type=int, default=100, help='no. of episodes to be considered while computing average reward')
+    parser.add_argument('--n_ep_avg',  type=int, default=100, help='no. of episodes to be considered while computing average reward')
+    parser.add_argument("--save_model", type=str2bool, default=False,  help="boolean to specify whether the model is to be saved")
 
     # Reservoir Simulation parameters
     parser.add_argument('--action_steps',  type=int, default=11, help='ResSim parameters: no of actions steps i.e. division of q in given value')
@@ -221,7 +225,8 @@ if __name__ == "__main__":
     K_TYPE = args.k_type
 
     ENV_NAME = args.env_name
-    N_EP_AVG = args.n_ep_evg
+    N_EP_AVG = args.n_ep_avg
+    SAVE_MODEL = args.save_model
     GAMMA = args.gamma
     LEARNING_RATE = args.learning_rate
 
