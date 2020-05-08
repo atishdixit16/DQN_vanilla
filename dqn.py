@@ -102,7 +102,7 @@ def dqn_algorithm(trail_no, verbose=True):
     if ENV_NAME=='ResSim-v0':
         env = resSimEnv_v0(action_steps=ACTION_STEPS, nx=NX,ny=NY,lx=LX,ly=LY,n_steps=N_STEP,dt=DT,mu_w =MU_W,mu_o =MU_O,phi=PHI,k=K,k_type=K_TYPE)
     elif ENV_NAME=='ResSim-v1':
-        env = resSimEnv_v1(action_steps=ACTION_STEPS,nx=NX,ny=NY,lx=LX,ly=LY,n_steps=N_STEP,dt=DT,mu_w =MU_W,mu_o =MU_O,phi=PHI,k=K,k_type=K_TYPE,state_sqn_n=STATE_SEQ_N)
+        env = resSimEnv_v1(action_steps=ACTION_STEPS,nx=NX,ny=NY,lx=LX,ly=LY,n_steps=N_STEP,dt=DT,mu_w =MU_W,mu_o =MU_O,phi=PHI,k=K,k_type=K_TYPE,state_seq_n=STATE_SEQ_N)
     else:
         env = gym.make(ENV_NAME) 
 
