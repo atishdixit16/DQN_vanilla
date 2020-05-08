@@ -102,7 +102,7 @@ def dqn_algorithm(trail_no, verbose=True):
     if ENV_NAME=='ResSim-v0':
         env = resSimEnv_v0(action_steps=ACTION_STEPS, nx=NX,ny=NY,lx=LX,ly=LY,n_steps=N_STEP,dt=DT,mu_w =MU_W,mu_o =MU_O,phi=PHI,k=K,k_type=K_TYPE)
     elif ENV_NAME=='ResSim-v1':
-        env = resSimEnv_v1(action_steps=ACTION_STEPS,nx=NX,ny=NY,lx=LX,ly=LY,n_steps=N_STEP,dt=DT,mu_w =MU_W,mu_o =MU_O,phi=PHI,k=K,k_type=K_TYPE)
+        env = resSimEnv_v1(action_steps=ACTION_STEPS,nx=NX,ny=NY,lx=LX,ly=LY,n_steps=N_STEP,dt=DT,mu_w =MU_W,mu_o =MU_O,phi=PHI,k=K,k_type=K_TYPE,state_sqn_n=STATE_SEQ_N)
     else:
         env = gym.make(ENV_NAME) 
 
@@ -213,6 +213,7 @@ if __name__ == "__main__":
     parser.add_argument('--phi',  type=float, default=0.1, help='ResSim parameters: porosity')
     parser.add_argument('--k',  type=float, default=1.0, help='ResSim parameters: permeability')
     parser.add_argument('--k_type', default='uniform', help='ResSim parameters: permeability type (uniform or random)')
+    parser.add_argument('--state_seq_n',  type=int, default=1, help='ResSim parameters: length of state sequence')
         
     args = parser.parse_args()
     
@@ -229,6 +230,7 @@ if __name__ == "__main__":
     PHI = args.phi
     K = args.k
     K_TYPE = args.k_type
+    STATE_SEQ_N = args.state_seq_n
 
     ENV_NAME = args.env_name
     N_EP_AVG = args.n_ep_avg
