@@ -24,7 +24,7 @@ class DQNSolver:
 
         self.action_space = action_space
         self.memory = deque(maxlen=MEMORY_SIZE)
-        self.loss = 0
+        self.loss = 1.0
 
         self.model = Sequential()
         for layer_n, activation, i in zip(MLP_LAYERS, MLP_ACTIVATIONS, range(len(MLP_LAYERS))):
@@ -146,7 +146,7 @@ def dqn_algorithm(trail_no, verbose=True):
                 steps.append(t)
                 NN_tr_loss.append(dqn_solver.loss)
                 if verbose:
-                    print('Exploration %: '+str(int(dqn_solver.exploration_rate*100))+' ,Episodes: '+str(len(episode_rewards))+' ,Mean_reward: '+str(round(np.mean(episode_rewards[(-1-N_EP_AVG):-1]), 1))+' ,timestep: '+str(t)+' , tr_loss: '+str(round(dqn_solver.loss,4)))
+                    print('Exploration %: '+str(int(explore_percent[-1]))+' ,Episodes: '+str(episodes[-1])+' ,Mean_reward: '+str(mean100_rew[-1])+' ,timestep: '+str(t)+' , tr_loss: '+str(round(NN_tr_loss[-1],4)))
 
             if t>TOTAL_TIMESTEPS:
                 output_table = np.stack((explore_percent, episodes, mean100_rew, steps, NN_tr_loss))
