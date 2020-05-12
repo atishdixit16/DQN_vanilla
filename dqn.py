@@ -6,6 +6,7 @@ from keras.models import Sequential, clone_model
 from keras.layers import Dense
 from keras.optimizers import Adam
 from keras.initializers import Orthogonal, Zeros
+from keras.callbacks import History
 from tqdm import trange
 import tensorflow as tf
 import time
@@ -23,6 +24,7 @@ class DQNSolver:
 
         self.action_space = action_space
         self.memory = deque(maxlen=MEMORY_SIZE)
+        self.loss = 0
 
         self.model = Sequential()
         for layer_n, activation, i in zip(MLP_LAYERS, MLP_ACTIVATIONS, range(len(MLP_LAYERS))):
@@ -82,7 +84,9 @@ class DQNSolver:
                 q_t1_best[i] = q_t1[i,ind[i]]
             q_t[i,int(action_np[i])] = reward_np[i] + GAMMA*(1-done_np[i])*q_t1_best[i]
         # train the DQN network
-        self.model.fit(state_np, q_t, verbose=0)
+        history = History()
+        hist = self.model.fit(state_np, q_t, verbose=0, epochs=EPOCHS, callbacks=[history])
+        self.loss=hist.history['loss'][-1]
 
     def eps_timestep_decay(self, t):
         fraction = min (float(t)/int(TOTAL_TIMESTEPS*EXPLORATION_FRACTION), 1.0)
@@ -112,7 +116,7 @@ def dqn_algorithm(trail_no, verbose=True):
     dqn_solver = DQNSolver(observation_space, action_space, MLP_LAYERS, MLP_ACTIVATIONS)
     t = 0
     episode_rewards = [0.0]
-    explore_percent, episodes, mean100_rew, steps = [],[],[],[]
+    explore_percent, episodes, mean100_rew, steps, NN_tr_loss = [],[],[],[],[]
     while True:
         t_record = 0
         state = env.reset()
@@ -131,6 +135,7 @@ def dqn_algorithm(trail_no, verbose=True):
             # reward = reward if not terminal else -reward
             state_next = np.reshape(state_next, [1, observation_space])
             dqn_solver.remember(state, action, reward, state_next, terminal)
+            dqn_solver.experience_replay()
             state = state_next
             episode_rewards[-1] += reward
             num_episodes = len(episode_rewards)
@@ -139,20 +144,20 @@ def dqn_algorithm(trail_no, verbose=True):
                 episodes.append(len(episode_rewards))
                 mean100_rew.append(round(np.mean(episode_rewards[(-1-N_EP_AVG):-1]), 1))
                 steps.append(t)
+                NN_tr_loss.append(dqn_solver.loss)
                 if verbose:
-                    print('Exploration %: '+str(int(dqn_solver.exploration_rate*100))+' ,Episodes: '+str(len(episode_rewards))+' ,Mean_reward: '+str(round(np.mean(episode_rewards[(-1-N_EP_AVG):-1]), 1))+' ,timestep: '+str(t))
+                    print('Exploration %: '+str(int(dqn_solver.exploration_rate*100))+' ,Episodes: '+str(len(episode_rewards))+' ,Mean_reward: '+str(round(np.mean(episode_rewards[(-1-N_EP_AVG):-1]), 1))+' ,timestep: '+str(t)+' , tr_loss: '+str(round(dqn_solver.loss,4)))
 
             if t>TOTAL_TIMESTEPS:
-                output_table = np.stack((explore_percent, episodes, mean100_rew, steps))
+                output_table = np.stack((explore_percent, episodes, mean100_rew, steps, NN_tr_loss))
                 if not os.path.exists(FILE_PATH):
                     os.makedirs(FILE_PATH)
                 file_name = str(FILE_PATH)+'expt'+str(trail_no)+'.csv'
-                np.savetxt(file_name, np.transpose(output_table), delimiter=',', header='Exploration %,Episodes,Rewards,Timestep')
+                np.savetxt(file_name, np.transpose(output_table), delimiter=',', header='Exploration %,Episodes,Rewards,Timestep,Training Score')
                 if SAVE_MODEL:
                     file_name = str(FILE_PATH)+'model'+str(trail_no)+'.h5'
                     dqn_solver.model.save(file_name)
                 return
-            dqn_solver.experience_replay()
             if USE_TARGET_NETWORK and t%TARGET_UPDATE_FREQUENCY==0:
                 dqn_solver.update_target_network()
             if terminal or t_record >= STOP_EPISODE_AT_T:
@@ -199,6 +204,7 @@ if __name__ == "__main__":
     parser.add_argument('--n_ep_avg',  type=int, default=100, help='no. of episodes to be considered while computing average reward')
     parser.add_argument("--save_model", type=str2bool, default=False,  help="boolean to specify whether the model is to be saved")
     parser.add_argument("--double_dqn", type=str2bool, default=False,  help="boolean to specify whether to employ double DQN")
+    parser.add_argument('--epochs',  type=int, default=1, help='no. of epochs in every experience replay')
 
     # Reservoir Simulation parameters
     parser.add_argument('--action_steps',  type=int, default=11, help='ResSim parameters: no of actions steps i.e. division of q in given value')
@@ -238,6 +244,7 @@ if __name__ == "__main__":
     SAVE_MODEL = args.save_model
     GAMMA = args.gamma
     LEARNING_RATE = args.learning_rate
+    EPOCHS = args.epochs
 
     TOTAL_TIMESTEPS = args.total_timesteps
     MEMORY_SIZE = args.buffer_size
