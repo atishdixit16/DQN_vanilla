@@ -274,8 +274,14 @@ if __name__ == "__main__":
     VERBOSE = args.verbose
 
     time_array = np.empty(N_TRIAL_RUNS)
-    for i in trange(N_TRIAL_RUNS):
-        t0 = time.time()
-        dqn_algorithm(i, verbose=VERBOSE)
-        time_array[i] = time.time() - t0
+    if VERBOSE:
+        for i in trange(N_TRIAL_RUNS):
+            t0 = time.time()
+            dqn_algorithm(i, verbose=VERBOSE)
+            time_array[i] = time.time() - t0
+    else:
+        for i in range(N_TRIAL_RUNS):
+            t0 = time.time()
+            dqn_algorithm(i, verbose=VERBOSE)
+            time_array[i] = time.time() - t0
     np.savetxt(str(FILE_PATH)+'time_taken.csv', time_array, delimiter=',')
