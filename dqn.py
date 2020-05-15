@@ -42,7 +42,10 @@ class DQNSolver:
                 kernel_initializer=Orthogonal(gain=np.sqrt(2.0)),
                 bias_initializer=Zeros()))
         self.model.add(Dense(self.action_space, activation="linear"))
-        self.model.compile(loss="mse", optimizer=Adam(lr=LEARNING_RATE))
+        if GRAD_CLIP:
+            self.model.compile(loss="mse", optimizer=Adam(lr=LEARNING_RATE, amsgrad=True, clipvalue=10.0))
+        else:
+            self.model.compile(loss="mse", optimizer=Adam(lr=LEARNING_RATE, amsgrad=True))
         if USE_TARGET_NETWORK:
             self.target_model = clone_model(self.model)
             self.target_model.set_weights(self.model.get_weights())
@@ -205,6 +208,7 @@ if __name__ == "__main__":
     parser.add_argument("--save_model", type=str2bool, default=False,  help="boolean to specify whether the model is to be saved")
     parser.add_argument("--double_dqn", type=str2bool, default=False,  help="boolean to specify whether to employ double DQN")
     parser.add_argument('--epochs',  type=int, default=1, help='no. of epochs in every experience replay')
+    parser.add_argument("--grad_clip", type=str2bool, default=False,  help="boolean to specify whether to use gradient clipping in the optimizer (graclip value 10.0)")
 
     # Reservoir Simulation parameters
     parser.add_argument('--action_steps',  type=int, default=11, help='ResSim parameters: no of actions steps i.e. division of q in given value')
@@ -245,6 +249,7 @@ if __name__ == "__main__":
     GAMMA = args.gamma
     LEARNING_RATE = args.learning_rate
     EPOCHS = args.epochs
+    GRAD_CLIP = args.grad_clip
 
     TOTAL_TIMESTEPS = args.total_timesteps
     MEMORY_SIZE = args.buffer_size
