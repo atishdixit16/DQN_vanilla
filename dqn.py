@@ -42,6 +42,8 @@ class DQNSolver:
                 kernel_initializer=Orthogonal(gain=np.sqrt(2.0)),
                 bias_initializer=Zeros()))
         self.model.add(Dense(self.action_space, activation="linear"))
+        if LOAD_WEIGHTS:
+            self.model.load_weights(LOAD_WEIGHTS_MODEL_PATH)
         if GRAD_CLIP:
             self.model.compile(loss="mse", optimizer=Adam(lr=LEARNING_RATE, amsgrad=True, clipvalue=10.0))
         else:
@@ -213,6 +215,9 @@ if __name__ == "__main__":
     parser.add_argument("--double_dqn", type=str2bool, default=False,  help="boolean to specify whether to employ double DQN")
     parser.add_argument('--epochs',  type=int, default=1, help='no. of epochs in every experience replay')
     parser.add_argument("--grad_clip", type=str2bool, default=False,  help="boolean to specify whether to use gradient clipping in the optimizer (graclip value 10.0)")
+    parser.add_argument('--load_weights_model_path', default='results/model0.h5', help='path for the model to use for weight initialization')
+    parser.add_argument("--load_weights", type=str2bool, default=False,  help="boolean to specify whether to use a prespecified model to initializa the weights of neural network")
+
 
     # Reservoir Simulation parameters
     parser.add_argument('--action_steps',  type=int, default=11, help='ResSim parameters: no of actions steps i.e. division of q in given value')
@@ -282,6 +287,9 @@ if __name__ == "__main__":
     TARGET_UPDATE_FREQUENCY = args.target_update_frequency
 
     VERBOSE = args.verbose
+
+    LOAD_WEIGHTS = args.load_weights
+    LOAD_WEIGHTS_MODEL_PAT = args.load_weights_model_path
 
     time_array = np.empty(N_TRIAL_RUNS)
     if VERBOSE:
