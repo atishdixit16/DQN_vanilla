@@ -289,7 +289,7 @@ if __name__ == "__main__":
     VERBOSE = args.verbose
 
     LOAD_WEIGHTS = args.load_weights
-    LOAD_WEIGHTS_MODEL_PAT = args.load_weights_model_path
+    LOAD_WEIGHTS_MODEL_PATH = args.load_weights_model_path
 
     time_array = np.empty(N_TRIAL_RUNS)
     if VERBOSE:
