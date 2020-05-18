@@ -96,8 +96,11 @@ class DQNSolver:
         self.exploration_rate = EXPLORATION_MAX + fraction * (EXPLORATION_MIN - EXPLORATION_MAX)
 
     def eps_episode_decay(self, episode_num):
-        fraction = min (float(episode_num)/EXPLORATION_END_EPISODE, 1.0)
-        self.exploration_rate = EXPLORATION_MAX + fraction * (EXPLORATION_MIN - EXPLORATION_MAX)
+        if episode_num <= EXPLORATION_START_EPISODE:
+            self.exploration_rate = EXPLORATION_MAX
+        else: 
+            fraction = min (float(episode_num -EXPLORATION_START_EPISODE  )/EXPLORATION_END_EPISODE, 1.0)
+            self.exploration_rate = EXPLORATION_MAX + fraction * (EXPLORATION_MIN - EXPLORATION_MAX)
 
     def update_target_network(self):
         self.target_model.set_weights(self.model.get_weights())
@@ -194,7 +197,8 @@ if __name__ == "__main__":
     parser.add_argument('--exploration_max',  type=float, default=1.0, help='maximum exploration at the begining')
     parser.add_argument('--exploration_min',  type=float, default=0.02, help='minimum exploration at the end')
     parser.add_argument('--exploration_fraction',  type=float, default=0.3, help='fraction of total timesteps on which the exploration decay takes place')
-    parser.add_argument('--exploration_end_episode',  type=int, default=150, help='final episode at which exploration value reaches minimum')
+    parser.add_argument('--exploration_start_episode',  type=int, default=50, help='episode at which exploration value starts decaying')
+    parser.add_argument('--exploration_end_episode',  type=int, default=200, help='final episode at which exploration value reaches minimum')
     parser.add_argument("--explore_decay_by_timesteps", type=str2bool, default=False,  help="boolean for exploration decay as per timesteps")
     parser.add_argument("--explore_decay_by_episodes", type=str2bool, default=True,  help="boolean for exploration decay as per episodes")
     parser.add_argument('--stop_episode_at_t',  type=int, default=100, help='terminate episode at given timestep')
@@ -262,6 +266,7 @@ if __name__ == "__main__":
     EXPLORATION_END_EPISODE = args.exploration_end_episode
     EXPLORE_DECAY_BY_TIMESTEP = args.explore_decay_by_timesteps
     EXPLORE_DECAY_BY_EPISODES = args.explore_decay_by_episodes
+    EXPLORATION_START_EPISODE = args.exploration_start_episode
 
     STOP_EPISODE_AT_T = args.stop_episode_at_t
 
