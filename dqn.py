@@ -56,10 +56,21 @@ class DQNSolver:
         self.memory.append((state, action, reward, next_state, done))
 
     def act(self, state):
-        if np.random.rand() < self.exploration_rate:
-            return random.randrange(self.action_space)
-        q_values = self.model.predict(state)
-        return np.argmax(q_values[0])
+        if POLICY=='e-greedy':
+            if np.random.rand() < self.exploration_rate:
+                return random.randrange(self.action_space)
+            q_values = self.model.predict(state)
+            return np.argmax(q_values[0])
+        elif POLICY=='stochastic':
+            q_values = self.model.predict(state)
+            q_values = ( q_values-np.min(q_values) ) / ( np.max(q_values) - np.min(q_values) )
+            p=(1-self.exploration_rate)*30
+            q_power = np.power(q_values,p)
+            q_power = q_power.reshape(-1)
+            return np.random.choice(np.array(range(self.action_space)),p=q_power/np.sum(q_power))
+        else:
+            print('use either e-greedy or stochastic as policy choice')
+            return
 
     def experience_replay(self):
         if len(self.memory) < BATCH_SIZE:
@@ -193,6 +204,7 @@ if __name__ == "__main__":
     parser.add_argument('--log_file_name', default='log', help='name of file to store DQN results')
     parser.add_argument('--time_file_name', default='time', help='name of file to store computation time')
     parser.add_argument('--env_name', default='CartPole-v0', help='string for a gym environment')
+    parser.add_argument('--policy', default='e-greedy', help='policy to choose action: e-greedy or stochastic')
     parser.add_argument('--total_timesteps', type=int, default=1000, help='Total number of timesteps')
     parser.add_argument('--gamma', type=float, default=0.95, help='discount factor')
     parser.add_argument('--learning_rate',  type=float, default=1e-3, help='learning rate for the neural network')
@@ -202,7 +214,7 @@ if __name__ == "__main__":
     parser.add_argument('--exploration_max',  type=float, default=1.0, help='maximum exploration at the begining')
     parser.add_argument('--exploration_min',  type=float, default=0.02, help='minimum exploration at the end')
     parser.add_argument('--exploration_fraction',  type=float, default=0.3, help='fraction of total timesteps on which the exploration decay takes place')
-    parser.add_argument('--exploration_start_episode',  type=int, default=50, help='episode at which exploration value starts decaying')
+    parser.add_argument('--exploration_start_episode',  type=int, default=0, help='episode at which exploration value starts decaying')
     parser.add_argument('--exploration_end_episode',  type=int, default=200, help='final episode at which exploration value reaches minimum')
     parser.add_argument("--explore_decay_by_timesteps", type=str2bool, default=False,  help="boolean for exploration decay as per timesteps")
     parser.add_argument("--explore_decay_by_episodes", type=str2bool, default=True,  help="boolean for exploration decay as per episodes")
@@ -261,6 +273,7 @@ if __name__ == "__main__":
     LEARNING_RATE = args.learning_rate
     EPOCHS = args.epochs
     GRAD_CLIP = args.grad_clip
+    POLICY = args.policy
 
     TOTAL_TIMESTEPS = args.total_timesteps
     MEMORY_SIZE = args.buffer_size
