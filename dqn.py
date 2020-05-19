@@ -108,7 +108,7 @@ class DQNSolver:
         self.target_model.set_weights(self.model.get_weights())
 
 
-def dqn_algorithm(trail_no, verbose=True):
+def dqn_algorithm(verbose=True):
 
     # for reservoir simulation environemnt
     if ENV_NAME=='ResSim-v0':
@@ -160,10 +160,10 @@ def dqn_algorithm(trail_no, verbose=True):
                 output_table = np.stack((explore_percent, episodes, mean100_rew, steps, NN_tr_loss))
                 if not os.path.exists(FILE_PATH):
                     os.makedirs(FILE_PATH)
-                file_name = str(FILE_PATH)+'expt'+str(trail_no)+'.csv'
+                file_name = str(FILE_PATH)+LOG_FILE_NAME+'.csv'
                 np.savetxt(file_name, np.transpose(output_table), delimiter=',', header='Exploration %,Episodes,Rewards,Timestep,Training Score')
                 if SAVE_MODEL:
-                    file_name = str(FILE_PATH)+'model'+str(trail_no)+'.h5'
+                    file_name = str(FILE_PATH)+MODEL_FILE_NAME+'.h5'
                     dqn_solver.model.save(file_name)
                 return
             if USE_TARGET_NETWORK and t%TARGET_UPDATE_FREQUENCY==0:
@@ -189,8 +189,11 @@ if __name__ == "__main__":
 
     # DQN algorithms parameters
     parser.add_argument('--output_folder', default='results/', help='output filepath')
+    parser.add_argument('--model_file_name', default='model', help='name of file to save the model at the end learning')
+    parser.add_argument('--log_file_name', default='log', help='name of file to store DQN results')
+    parser.add_argument('--time_file_name', default='time', help='name of file to store computation time')
     parser.add_argument('--env_name', default='CartPole-v0', help='string for a gym environment')
-    parser.add_argument('--total_timesteps', type=int, default=10000, help='Total number of timesteps')
+    parser.add_argument('--total_timesteps', type=int, default=1000, help='Total number of timesteps')
     parser.add_argument('--gamma', type=float, default=0.95, help='discount factor')
     parser.add_argument('--learning_rate',  type=float, default=1e-3, help='learning rate for the neural network')
     parser.add_argument('--buffer_size',  type=int, default=100, help='Replay buffer size')
@@ -203,8 +206,7 @@ if __name__ == "__main__":
     parser.add_argument('--exploration_end_episode',  type=int, default=200, help='final episode at which exploration value reaches minimum')
     parser.add_argument("--explore_decay_by_timesteps", type=str2bool, default=False,  help="boolean for exploration decay as per timesteps")
     parser.add_argument("--explore_decay_by_episodes", type=str2bool, default=True,  help="boolean for exploration decay as per episodes")
-    parser.add_argument('--stop_episode_at_t',  type=int, default=100, help='terminate episode at given timestep')
-    parser.add_argument('--n_trial_runs',  type=int, default=1, help='no of trials to run ')
+    parser.add_argument('--stop_episode_at_t',  type=int, default=10, help='terminate episode at given timestep')
     parser.add_argument('--mlp_layers', nargs='+', type=int, default=[64, 64], help='list of neurons in each hodden layer of the DQN network')
     parser.add_argument('--mlp_activations', nargs='+', default=['relu', 'relu'], help='list of activation functions in each hodden layer of the DQN network')
     parser.add_argument("--use_target_network", type=str2bool, default=False,  help="boolean to use target neural network in DQN")
@@ -276,12 +278,12 @@ if __name__ == "__main__":
     STOP_EPISODE_AT_T = args.stop_episode_at_t
 
     FILE_PATH = args.output_folder
+    MODEL_FILE_NAME = args.model_file_name
+    LOG_FILE_NAME = args.log_file_name
+    TIME_FILE_NAME = args.time_file_name
 
     MLP_LAYERS = args.mlp_layers
     MLP_ACTIVATIONS = args.mlp_activations
-
-
-    N_TRIAL_RUNS = args.n_trial_runs
 
     USE_TARGET_NETWORK = args.use_target_network
     TARGET_UPDATE_FREQUENCY = args.target_update_frequency
@@ -290,16 +292,10 @@ if __name__ == "__main__":
 
     LOAD_WEIGHTS = args.load_weights
     LOAD_WEIGHTS_MODEL_PATH = args.load_weights_model_path
+    
+    t0 = time.time()
+    dqn_algorithm(verbose=VERBOSE)
+    time_array = np.array(time.time() - t0)
+    time_array = time_array.reshape((1))
 
-    time_array = np.empty(N_TRIAL_RUNS)
-    if VERBOSE:
-        for i in trange(N_TRIAL_RUNS):
-            t0 = time.time()
-            dqn_algorithm(i, verbose=VERBOSE)
-            time_array[i] = time.time() - t0
-    else:
-        for i in range(N_TRIAL_RUNS):
-            t0 = time.time()
-            dqn_algorithm(i, verbose=VERBOSE)
-            time_array[i] = time.time() - t0
-    np.savetxt(str(FILE_PATH)+'time_taken.csv', time_array, delimiter=',')
+    np.savetxt(str(FILE_PATH)+TIME_FILE_NAME+'.csv', time_array, delimiter=',')
