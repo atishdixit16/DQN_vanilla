@@ -64,7 +64,12 @@ class DQNSolver:
         elif POLICY=='stochastic':
             q_values = self.model.predict(state)
             q_values = ( q_values-np.min(q_values) ) / ( np.max(q_values) - np.min(q_values) )
-            p=(1-self.exploration_rate)*30
+            if self.exploration_rate == 1:
+                p=0
+            if self.exploration_rate < 1:
+                p=1
+            if self.exploration_rate<0.05:
+                p=100
             q_power = np.power(q_values,p)
             q_power = q_power.reshape(-1)
             return np.random.choice(np.array(range(self.action_space)),p=q_power/np.sum(q_power))
