@@ -126,13 +126,7 @@ class DQNSolver:
 
 def dqn_algorithm(verbose=True):
 
-    # for reservoir simulation environemnt
-    if ENV_NAME=='ResSim-v0':
-        env = resSimEnv_v0(action_steps=ACTION_STEPS, nx=NX,ny=NY,lx=LX,ly=LY,n_steps=N_STEP,dt=DT,mu_w =MU_W,mu_o =MU_O,phi=PHI,k=K,k_type=K_TYPE)
-    # elif ENV_NAME=='ResSim-v1':
-    #     env = resSimEnv_v1(action_steps=ACTION_STEPS,nx=NX,ny=NY,lx=LX,ly=LY,n_steps=N_STEP,dt=DT,mu_w =MU_W,mu_o =MU_O,phi=PHI,k=K,k_type=K_TYPE,state_seq_n=STATE_SEQ_N)
-    else:
-        env = gym.make(ENV_NAME) 
+    env = gym.make(ENV_NAME) 
 
     observation_space = env.observation_space.shape[0]
     action_space = env.action_space.n
@@ -236,23 +230,6 @@ if __name__ == "__main__":
     parser.add_argument("--grad_clip", type=str2bool, default=False,  help="boolean to specify whether to use gradient clipping in the optimizer (graclip value 10.0)")
     parser.add_argument('--load_weights_model_path', default='results/model0.h5', help='path for the model to use for weight initialization')
     parser.add_argument("--load_weights", type=str2bool, default=False,  help="boolean to specify whether to use a prespecified model to initializa the weights of neural network")
-
-
-    # Reservoir Simulation parameters
-    parser.add_argument('--action_steps',  type=int, default=11, help='ResSim parameters: no of actions steps i.e. division of q in given value')
-    parser.add_argument('--n_step',  type=int, default=50, help='ResSim parameters: no of steps in one timestep of ressim environment episode ')
-    parser.add_argument('--dt',  type=float, default=1e-3, help='ResSim parameters: timestep size of reservoir simulation in each n_step')
-    parser.add_argument('--mu_w',  type=float, default=1.0, help='ResSim parameters: water viscosity')
-    parser.add_argument('--mu_o',  type=float, default=2.0, help='ResSim parameters: oil viscosity')
-    parser.add_argument('--lx',  type=float, default=1.0, help='ResSim parameters: domain length in x direction')
-    parser.add_argument('--ly',  type=float, default=1.0, help='ResSim parameters: domain length in y direction')
-    parser.add_argument('--nx',  type=int, default=10, help='ResSim parameters: no of cells in x direction ')
-    parser.add_argument('--ny',  type=int, default=10, help='ResSim parameters: no of cells in y direction ')
-    parser.add_argument('--phi',  type=float, default=0.1, help='ResSim parameters: porosity')
-    parser.add_argument('--k',  type=float, default=1.0, help='ResSim parameters: permeability')
-    parser.add_argument('--k_type', default='uniform', help='ResSim parameters: permeability type (uniform or random)')
-    parser.add_argument('--state_seq_n',  type=int, default=1, help='ResSim parameters: length of state sequence')
-        
     args = parser.parse_args()
     
     # ResSim parameters:
