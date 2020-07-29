@@ -341,9 +341,6 @@ if __name__ == "__main__":
     LOAD_WEIGHTS_MODEL_PATH = args.load_weights_model_path
     '''
 
-
-
-
     dqn_algorithm(ENV_NAME=args.env_name,
                   GAMMA = args.gamma,
                   TOTAL_TIMESTEPS = args.total_timesteps,
