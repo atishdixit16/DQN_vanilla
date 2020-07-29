@@ -144,7 +144,7 @@ def dqn_algorithm(verbose=True):
             state = state_next
             episode_rewards[-1] += reward
             num_episodes = len(episode_rewards)
-            if (terminal and num_episodes%PRINT_FREQ==0:
+            if (terminal and num_episodes%PRINT_FREQ==0):
                 explore_percent.append(dqn_solver.exploration_rate*100)
                 episodes.append(len(episode_rewards))
                 mean100_rew.append(round(np.mean(episode_rewards[(-1-N_EP_AVG):-1]), 1))
