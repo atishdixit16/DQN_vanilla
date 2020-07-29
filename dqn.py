@@ -113,13 +113,6 @@ class DQNSolver:
         fraction = min (float(t)/int(TOTAL_TIMESTEPS*EXPLORATION_FRACTION), 1.0)
         self.exploration_rate = EXPLORATION_MAX + fraction * (EXPLORATION_MIN - EXPLORATION_MAX)
 
-    def eps_episode_decay(self, episode_num):
-        if episode_num <= EXPLORATION_START_EPISODE:
-            self.exploration_rate = EXPLORATION_MAX
-        else: 
-            fraction = min (float(episode_num -EXPLORATION_START_EPISODE  )/EXPLORATION_END_EPISODE, 1.0)
-            self.exploration_rate = EXPLORATION_MAX + fraction * (EXPLORATION_MIN - EXPLORATION_MAX)
-
     def update_target_network(self):
         self.target_model.set_weights(self.model.get_weights())
 
@@ -142,11 +135,7 @@ def dqn_algorithm(verbose=True):
         while True:
             t += 1
             t_record += 1
-            #env.render()
-            if EXPLORE_DECAY_BY_EPISODES:
-                dqn_solver.eps_episode_decay(len(episode_rewards))
-            if EXPLORE_DECAY_BY_TIMESTEP:
-                dqn_solver.eps_timestep_decay(t)
+            dqn_solver.eps_timestep_decay(t)
 
             action = dqn_solver.act(state)
             state_next, reward, terminal, _ = env.step(action)
@@ -213,10 +202,6 @@ if __name__ == "__main__":
     parser.add_argument('--exploration_max',  type=float, default=1.0, help='maximum exploration at the begining')
     parser.add_argument('--exploration_min',  type=float, default=0.02, help='minimum exploration at the end')
     parser.add_argument('--exploration_fraction',  type=float, default=0.3, help='fraction of total timesteps on which the exploration decay takes place')
-    parser.add_argument('--exploration_start_episode',  type=int, default=0, help='episode at which exploration value starts decaying')
-    parser.add_argument('--exploration_end_episode',  type=int, default=200, help='final episode at which exploration value reaches minimum')
-    parser.add_argument("--explore_decay_by_timesteps", type=str2bool, default=False,  help="boolean for exploration decay as per timesteps")
-    parser.add_argument("--explore_decay_by_episodes", type=str2bool, default=True,  help="boolean for exploration decay as per episodes")
     parser.add_argument('--stop_episode_at_t',  type=int, default=10, help='terminate episode at given timestep')
     parser.add_argument('--mlp_layers', nargs='+', type=int, default=[64, 64], help='list of neurons in each hodden layer of the DQN network')
     parser.add_argument('--mlp_activations', nargs='+', default=['relu', 'relu'], help='list of activation functions in each hodden layer of the DQN network')
