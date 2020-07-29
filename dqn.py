@@ -11,6 +11,7 @@ from tqdm import trange
 import time
 import argparse
 import gym
+from set_seed import set_seed
 
 class DQNSolver:
 
@@ -87,7 +88,7 @@ class DQNSolver:
         self.memory.append((state, action, reward, next_state, done))
 
     def act(self, state):
-        if np.random.rand() < self.exploration_rate:
+        if random.random() < self.exploration_rate:
             return random.randrange(self.action_space)
         q_values = self.model.predict(state)
         return np.argmax(q_values[0])
@@ -133,6 +134,7 @@ class DQNSolver:
 
 
 def dqn_algorithm(ENV_NAME,
+                  SEED=1,
                   TOTAL_TIMESTEPS = 100000,
                   GAMMA = 0.95,
                   MEMORY_SIZE = 1000,
@@ -140,6 +142,7 @@ def dqn_algorithm(ENV_NAME,
                   EXPLORATION_MAX = 1.0,
                   EXPLORATION_MIN = 0.02,
                   EXPLORATION_FRACTION = 0.7,
+                  TRAINING_FREQUENCY = 1000,
                   FILE_PATH = 'results/',
                   SAVE_MODEL = False,
                   MODEL_FILE_NAME = 'model',
@@ -191,7 +194,11 @@ def dqn_algorithm(ENV_NAME,
     '''
 
     before = time.time()
-    env = gym.make(ENV_NAME) 
+    env = gym.make(ENV_NAME)
+
+    # for reproducibility
+    env.seed(SEED)
+    set_seed(SEED)
 
     observation_space = env.observation_space.shape[0]
     action_space = env.action_space.n
@@ -229,7 +236,8 @@ def dqn_algorithm(ENV_NAME,
             # reward = reward if not terminal else -reward
             state_next = np.reshape(state_next, [1, observation_space])
             dqn_solver.remember(state, action, reward, state_next, terminal)
-            dqn_solver.experience_replay()
+            if t%TRAINING_FREQUENCY==0:
+                dqn_solver.experience_replay()
             state = state_next
             episode_rewards[-1] += reward
             num_episodes = len(episode_rewards)
@@ -278,7 +286,8 @@ if __name__ == "__main__":
 
     # DQN algorithms parameters
     parser.add_argument('--env_name', default='CartPole-v0', help='string for a gym environment')
-    parser.add_argument('--total_timesteps', type=int, default=10000, help='Total number of timesteps')
+    parser.add_argument('--seed', type=float, default=1, help='seed for pseudo random generator')
+    parser.add_argument('--total_timesteps', type=int, default=150000, help='Total number of timesteps')
     parser.add_argument('--gamma', type=float, default=0.95, help='discount factor')
     parser.add_argument('--buffer_size',  type=int, default=1000, help='Replay buffer size')
     parser.add_argument('--batch_size',  type=int, default=32, help='batch size for experience replay')
@@ -301,6 +310,7 @@ if __name__ == "__main__":
     parser.add_argument("--double_dqn", type=str2bool, default=False,  help="boolean to specify whether to employ double DQN")
     parser.add_argument("--use_target_network", type=str2bool, default=True,  help="boolean to use target neural network in DQN")
     parser.add_argument('--target_update_frequency',  type=int, default=1000, help='timesteps frequency to do weight update from online network to target network')
+    parser.add_argument('--training_frequency',  type=int, default=100, help='timesteps frequency to train the DQN (experience replay)')
     parser.add_argument("--load_weights", type=str2bool, default=False,  help="boolean to specify whether to use a prespecified model to initializa the weights of neural network")
     parser.add_argument('--load_weights_model_path', default='results/model0.h5', help='path for the model to use for weight initialization')
     args = parser.parse_args()
@@ -342,10 +352,12 @@ if __name__ == "__main__":
     '''
 
     dqn_algorithm(ENV_NAME=args.env_name,
+                  SEED=args.seed,
                   GAMMA = args.gamma,
                   TOTAL_TIMESTEPS = args.total_timesteps,
                   MEMORY_SIZE = args.buffer_size,
                   BATCH_SIZE = args.batch_size,
+                  TRAINING_FREQUENCY = args.training_frequency,
                   TARGET_UPDATE_FREQUENCY = args.target_update_frequency,
                   PRINT_FREQ = args.print_frequency,
                   N_EP_AVG = args.n_ep_avg,
