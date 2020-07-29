@@ -8,14 +8,9 @@ from keras.optimizers import Adam
 from keras.initializers import Orthogonal, Zeros
 from keras.callbacks import History
 from tqdm import trange
-import tensorflow as tf
 import time
 import argparse
-
 import gym
-
-from Ressim_Env.ressim_enviroment import resSimEnv_v0, resSimEnv_v1
-
 
 class DQNSolver:
 
@@ -215,12 +210,7 @@ if __name__ == "__main__":
     EXPLORATION_MAX = args.exploration_max
     EXPLORATION_MIN = args.exploration_min
     EXPLORATION_FRACTION = args.exploration_fraction
-    EXPLORATION_END_EPISODE = args.exploration_end_episode
     EXPLORE_DECAY_BY_TIMESTEP = args.explore_decay_by_timesteps
-    EXPLORE_DECAY_BY_EPISODES = args.explore_decay_by_episodes
-    EXPLORATION_START_EPISODE = args.exploration_start_episode
-
-    STOP_EPISODE_AT_T = args.stop_episode_at_t
 
     FILE_PATH = args.output_folder
     MODEL_FILE_NAME = args.model_file_name
