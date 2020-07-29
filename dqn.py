@@ -167,6 +167,7 @@ def dqn_algorithm(ENV_NAME,
 
     env_name : string for a gym environment
     total_timesteps : Total number of timesteps
+    training_frequency : frequency of training (experience replay)
     gamma : discount factor : 
     buffer_size : Replay buffer size 
     batch_size : batch size for experience replay 
