@@ -193,44 +193,42 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
 
+    # DQN algorithm parameters
     ENV_NAME = args.env_name
-    N_EP_AVG = args.n_ep_avg
-    DOUBLE_DQN = args.double_dqn
-    SAVE_MODEL = args.save_model
     GAMMA = args.gamma
-    LEARNING_RATE = args.learning_rate
-    EPOCHS = args.epochs
-    GRAD_CLIP = args.grad_clip
-
     TOTAL_TIMESTEPS = args.total_timesteps
     MEMORY_SIZE = args.buffer_size
     BATCH_SIZE = args.batch_size
+    TARGET_UPDATE_FREQUENCY = args.target_update_frequency
+
+    # saving/loggin parameters
     PRINT_FREQ = args.print_frequency
-
-    EXPLORATION_MAX = args.exploration_max
-    EXPLORATION_MIN = args.exploration_min
-    EXPLORATION_FRACTION = args.exploration_fraction
-    EXPLORE_DECAY_BY_TIMESTEP = args.explore_decay_by_timesteps
-
+    N_EP_AVG = args.n_ep_avg
+    SAVE_MODEL = args.save_model
     FILE_PATH = args.output_folder
     MODEL_FILE_NAME = args.model_file_name
     LOG_FILE_NAME = args.log_file_name
     TIME_FILE_NAME = args.time_file_name
-
-    MLP_LAYERS = args.mlp_layers
-    MLP_ACTIVATIONS = args.mlp_activations
-
-    USE_TARGET_NETWORK = args.use_target_network
-    TARGET_UPDATE_FREQUENCY = args.target_update_frequency
-
     VERBOSE = args.verbose
 
+    # DQNSolver parameters
+    EPOCHS = args.epochs
+    GRAD_CLIP = args.grad_clip
+    MLP_LAYERS = args.mlp_layers
+    MLP_ACTIVATIONS = args.mlp_activations
+    DOUBLE_DQN = args.double_dqn
+    LEARNING_RATE = args.learning_rate
+    EXPLORATION_MAX = args.exploration_max
+    EXPLORATION_MIN = args.exploration_min
+    EXPLORATION_FRACTION = args.exploration_fraction
+    EXPLORE_DECAY_BY_TIMESTEP = args.explore_decay_by_timesteps
+    USE_TARGET_NETWORK = args.use_target_network
     LOAD_WEIGHTS = args.load_weights
     LOAD_WEIGHTS_MODEL_PATH = args.load_weights_model_path
-    
-    t0 = time.time()
-    dqn_algorithm(verbose=VERBOSE)
-    time_array = np.array(time.time() - t0)
-    time_array = time_array.reshape((1))
 
-    np.savetxt(str(FILE_PATH)+TIME_FILE_NAME+'.csv', time_array, delimiter=',')
+    before = time.time()
+    dqn_algorithm(verbose=VERBOSE)
+    after = time.time()
+
+    time_taken = after-before
+    np.save(str(FILE_PATH)+TIME_FILE_NAME, time_taken  )
