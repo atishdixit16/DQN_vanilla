@@ -129,12 +129,10 @@ def dqn_algorithm(verbose=True):
     episode_rewards = [0.0]
     explore_percent, episodes, mean100_rew, steps, NN_tr_loss = [],[],[],[],[]
     while True:
-        t_record = 0
         state = env.reset()
         state = np.reshape(state, [1, observation_space])
         while True:
             t += 1
-            t_record += 1
             dqn_solver.eps_timestep_decay(t)
 
             action = dqn_solver.act(state)
@@ -146,7 +144,7 @@ def dqn_algorithm(verbose=True):
             state = state_next
             episode_rewards[-1] += reward
             num_episodes = len(episode_rewards)
-            if (terminal or t_record >= STOP_EPISODE_AT_T) and num_episodes%PRINT_FREQ==0:
+            if (terminal and num_episodes%PRINT_FREQ==0:
                 explore_percent.append(dqn_solver.exploration_rate*100)
                 episodes.append(len(episode_rewards))
                 mean100_rew.append(round(np.mean(episode_rewards[(-1-N_EP_AVG):-1]), 1))
@@ -167,7 +165,7 @@ def dqn_algorithm(verbose=True):
                 return
             if USE_TARGET_NETWORK and t%TARGET_UPDATE_FREQUENCY==0:
                 dqn_solver.update_target_network()
-            if terminal or t_record >= STOP_EPISODE_AT_T:
+            if terminal:
                 episode_rewards.append(0.0)
                 break
     return
@@ -202,7 +200,6 @@ if __name__ == "__main__":
     parser.add_argument('--exploration_max',  type=float, default=1.0, help='maximum exploration at the begining')
     parser.add_argument('--exploration_min',  type=float, default=0.02, help='minimum exploration at the end')
     parser.add_argument('--exploration_fraction',  type=float, default=0.3, help='fraction of total timesteps on which the exploration decay takes place')
-    parser.add_argument('--stop_episode_at_t',  type=int, default=10, help='terminate episode at given timestep')
     parser.add_argument('--mlp_layers', nargs='+', type=int, default=[64, 64], help='list of neurons in each hodden layer of the DQN network')
     parser.add_argument('--mlp_activations', nargs='+', default=['relu', 'relu'], help='list of activation functions in each hodden layer of the DQN network')
     parser.add_argument("--use_target_network", type=str2bool, default=False,  help="boolean to use target neural network in DQN")
