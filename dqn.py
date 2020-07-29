@@ -197,20 +197,6 @@ if __name__ == "__main__":
     parser.add_argument("--load_weights", type=str2bool, default=False,  help="boolean to specify whether to use a prespecified model to initializa the weights of neural network")
     args = parser.parse_args()
     
-    # ResSim parameters:
-    ACTION_STEPS = args.action_steps 
-    N_STEP = args.n_step
-    DT = args.dt
-    MU_W = args.mu_w
-    MU_O = args.mu_o
-    LX = args.lx
-    LY = args.ly
-    NX = args.nx
-    NY = args.ny
-    PHI = args.phi
-    K = args.k
-    K_TYPE = args.k_type
-    STATE_SEQ_N = args.state_seq_n
 
     ENV_NAME = args.env_name
     N_EP_AVG = args.n_ep_avg
