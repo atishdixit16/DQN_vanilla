@@ -56,26 +56,10 @@ class DQNSolver:
         self.memory.append((state, action, reward, next_state, done))
 
     def act(self, state):
-        if POLICY=='e-greedy':
-            if np.random.rand() < self.exploration_rate:
-                return random.randrange(self.action_space)
-            q_values = self.model.predict(state)
-            return np.argmax(q_values[0])
-        elif POLICY=='stochastic':
-            q_values = self.model.predict(state)
-            q_values = ( q_values-np.min(q_values) ) / ( np.max(q_values) - np.min(q_values) )
-            if self.exploration_rate == 1:
-                p=0
-            if self.exploration_rate < 1:
-                p=1
-            if self.exploration_rate<0.05:
-                p=100
-            q_power = np.power(q_values,p)
-            q_power = q_power.reshape(-1)
-            return np.random.choice(np.array(range(self.action_space)),p=q_power/np.sum(q_power))
-        else:
-            print('use either e-greedy or stochastic as policy choice')
-            return
+        if np.random.rand() < self.exploration_rate:
+            return random.randrange(self.action_space)
+        q_values = self.model.predict(state)
+        return np.argmax(q_values[0])
 
     def experience_replay(self):
         if len(self.memory) < BATCH_SIZE:
@@ -190,7 +174,6 @@ if __name__ == "__main__":
     parser.add_argument('--log_file_name', default='log', help='name of file to store DQN results')
     parser.add_argument('--time_file_name', default='time', help='name of file to store computation time')
     parser.add_argument('--env_name', default='CartPole-v0', help='string for a gym environment')
-    parser.add_argument('--policy', default='e-greedy', help='policy to choose action: e-greedy or stochastic')
     parser.add_argument('--total_timesteps', type=int, default=1000, help='Total number of timesteps')
     parser.add_argument('--gamma', type=float, default=0.95, help='discount factor')
     parser.add_argument('--learning_rate',  type=float, default=1e-3, help='learning rate for the neural network')
@@ -237,7 +220,6 @@ if __name__ == "__main__":
     LEARNING_RATE = args.learning_rate
     EPOCHS = args.epochs
     GRAD_CLIP = args.grad_clip
-    POLICY = args.policy
 
     TOTAL_TIMESTEPS = args.total_timesteps
     MEMORY_SIZE = args.buffer_size
