@@ -35,7 +35,6 @@ class DQNSolver:
                  EXPLORATION_MIN,
                  EXPLORATION_FRACTION):
 
-
         self.action_space = action_space
         self.observation_space = observation_space
         self.exploration_rate = EXPLORATION_MAX
