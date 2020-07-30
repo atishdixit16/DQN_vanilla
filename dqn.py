@@ -12,6 +12,8 @@ import time
 import argparse
 import gym
 from set_seed import set_seed
+from multiprocessing_env import SubprocVecEnv
+from ParallelEnvWrapper import ParallelEnvWrapper
 
 class DQNSolver:
 
@@ -84,25 +86,34 @@ class DQNSolver:
             self.target_model.set_weights(self.model.get_weights())
 
     def remember(self, state, action, reward, next_state, done):
-        self.memory.append((state, action, reward, next_state, done))
+        for i in range(state.shape[0]):
+            if not (np.isnan(state[i][0]) or np.isnan(next_state[i][0])):
+                self.memory.append((state[i], action[i], reward[i], next_state[i], done[i]))
 
     def act(self, state):
-        if random.random() < self.exploration_rate:
-            return random.randrange(self.action_space)
-        q_values = self.model.predict(state)
-        return np.argmax(q_values[0])
+        actions = []
+        for s in state:
+            if np.isnan(s[0]):
+                actions.append(random.randrange(self.action_space))
+            else:
+                if random.random() < self.exploration_rate:
+                    actions.append(random.randrange(self.action_space))
+                else:
+                    q_values = self.model.predict(s.reshape(1,-1))
+                    actions.append(np.argmax(q_values[0]))
+        return actions
 
     def experience_replay(self):
         if len(self.memory) < self.batch_size:
             return
         ### new code for network training
         batch = random.sample(self.memory, self.batch_size)
-        state_dim = batch[0][0][0].shape[0] 
+        state_dim = batch[0][0].shape[0] 
         state_np, state_next_np = np.empty((self.batch_size,state_dim)), np.empty((self.batch_size,state_dim))
         reward_np, action_np, done_np = np.empty(self.batch_size), np.empty(self.batch_size), np.empty(self.batch_size)
         for i in range(self.batch_size):
-            state_np[i] = (batch[i][0][0])
-            state_next_np[i] = (batch[i][3][0])
+            state_np[i] = (batch[i][0])
+            state_next_np[i] = (batch[i][3])
             action_np[i] = (batch[i][1])
             reward_np[i] = (batch[i][2])
             done_np[i] = (batch[i][4])
@@ -133,6 +144,7 @@ class DQNSolver:
 
 
 def dqn_algorithm(ENV_NAME,
+                  NUM_ENV=8,
                   SEED=1,
                   TOTAL_TIMESTEPS = 100000,
                   GAMMA = 0.95,
@@ -165,6 +177,7 @@ def dqn_algorithm(ENV_NAME,
     DQN Algorithm execution
 
     env_name : string for a gym environment
+    num_env : no. for environment vectorization (multiprocessing env)
     total_timesteps : Total number of timesteps
     training_frequency : frequency of training (experience replay)
     gamma : discount factor : 
@@ -194,14 +207,29 @@ def dqn_algorithm(ENV_NAME,
     '''
 
     before = time.time()
-    env = gym.make(ENV_NAME)
+    num_envs = NUM_ENV
+    env_name = ENV_NAME
+
+    if TOTAL_TIMESTEPS%NUM_ENV:
+        print('Error: total timesteps is not divisible by no. of envs')
+        return 
+
+    def make_env():
+        def _thunk():
+            env = gym.make(env_name)
+            env.seed(SEED)
+            return env
+
+        return _thunk
+
+    envs = [make_env() for i in range(num_envs)]
+    envs = SubprocVecEnv(envs)
 
     # for reproducibility
-    env.seed(SEED)
     set_seed(SEED)
 
-    observation_space = env.observation_space.shape[0]
-    action_space = env.action_space.n
+    observation_space = envs.observation_space.shape[0]
+    action_space = envs.action_space.n
 
     dqn_solver = DQNSolver(observation_space, 
                            action_space, 
@@ -221,27 +249,30 @@ def dqn_algorithm(ENV_NAME,
                            EXPLORATION_MAX,
                            EXPLORATION_MIN,
                            EXPLORATION_FRACTION)
+
+    envs = ParallelEnvWrapper(envs)
     t = 0
-    episode_rewards = [0.0]
+    episode_rewards = [0.0]*num_envs
     explore_percent, episodes, mean100_rew, steps, NN_tr_loss = [],[],[],[],[]
     while True:
-        state = env.reset()
-        state = np.reshape(state, [1, observation_space])
+        state = envs.reset()
+        # state = np.reshape(state, [1, observation_space])
         while True:
-            t += 1
+            t += num_envs
             dqn_solver.eps_timestep_decay(t)
-
             action = dqn_solver.act(state)
-            state_next, reward, terminal, _ = env.step(action)
+            state_next, reward, terminal, _ = envs.step(action)
+            # print(terminal)
             # reward = reward if not terminal else -reward
-            state_next = np.reshape(state_next, [1, observation_space])
+            # state_next = np.reshape(state_next, [1, observation_space])
             dqn_solver.remember(state, action, reward, state_next, terminal)
             if t%TRAINING_FREQUENCY==0:
                 dqn_solver.experience_replay()
             state = state_next
-            episode_rewards[-1] += reward
-            num_episodes = len(episode_rewards)
-            if (terminal and num_episodes%PRINT_FREQ==0):
+            episode_rewards[-num_envs:] = [i+j for (i,j) in zip(episode_rewards[-num_envs:],reward)]
+            # num_episodes = len(episode_rewards)
+            # print(terminal)
+            if (t%PRINT_FREQ==0):
                 explore_percent.append(dqn_solver.exploration_rate*100)
                 episodes.append(len(episode_rewards))
                 mean100_rew.append(round(np.mean(episode_rewards[(-1-N_EP_AVG):-1]), 1))
@@ -265,8 +296,9 @@ def dqn_algorithm(ENV_NAME,
                 return
             if USE_TARGET_NETWORK and t%TARGET_UPDATE_FREQUENCY==0:
                 dqn_solver.update_target_network()
-            if terminal:
-                episode_rewards.append(0.0)
+            # print(t)
+            if terminal.all():
+                episode_rewards += [0.0]*num_envs
                 break
     return
 
@@ -286,8 +318,9 @@ if __name__ == "__main__":
 
     # DQN algorithms parameters
     parser.add_argument('--env_name', default='CartPole-v0', help='string for a gym environment')
+    parser.add_argument('--num_env', type=int, default=8, help='no. for environment vectorization')
     parser.add_argument('--seed', type=int, default=4, help='seed for pseudo random generator')
-    parser.add_argument('--total_timesteps', type=int, default=250000, help='Total number of timesteps')
+    parser.add_argument('--total_timesteps', type=int, default=300000, help='Total number of timesteps')
     parser.add_argument('--gamma', type=float, default=0.95, help='discount factor')
     parser.add_argument('--buffer_size',  type=int, default=1000, help='Replay buffer size')
     parser.add_argument('--batch_size',  type=int, default=32, help='batch size for experience replay')
@@ -299,7 +332,7 @@ if __name__ == "__main__":
     parser.add_argument('--model_file_name', default='model', help='name of file to save the model at the end learning')
     parser.add_argument('--log_file_name', default='log', help='name of file to store DQN results')
     parser.add_argument('--time_file_name', default='time', help='name of file to store computation time')
-    parser.add_argument('--print_frequency',  type=int, default=100, help='results printing episodic frequency')
+    parser.add_argument('--print_frequency',  type=int, default=1000, help='printing with timestep frequency')
     parser.add_argument('--n_ep_avg',  type=int, default=100, help='no. of episodes to be considered while computing average reward')
     parser.add_argument('--verbose', type=str2bool, default=True,  help='print episodic results')
     parser.add_argument('--mlp_layers', nargs='+', type=int, default=[64, 64], help='list of neurons in each hodden layer of the DQN network')
@@ -311,7 +344,7 @@ if __name__ == "__main__":
     parser.add_argument('--use_target_network', type=str2bool, default=True,  help='boolean to use target neural network in DQN')
     parser.add_argument('--target_update_frequency',  type=int, default=1000, help='timesteps frequency to do weight update from online network to target network')
     parser.add_argument('--training_frequency',  type=int, default=100, help='timesteps frequency to train the DQN (experience replay)')
-    parser.add_argument('--load_weights", type=str2bool, default=False,  help="boolean to specify whether to use a prespecified model to initializa the weights of neural network')
+    parser.add_argument('--load_weights', type=str2bool, default=False,  help='boolean to specify whether to use a prespecified model to initializa the weights of neural network')
     parser.add_argument('--load_weights_model_path', default='results/model0.h5', help='path for the model to use for weight initialization')
     args = parser.parse_args()
     
@@ -320,6 +353,7 @@ if __name__ == "__main__":
 
     # DQN algorithm parameters
     ENV_NAME = args.env_name
+    NUM_ENV = args.num_env
     GAMMA = args.gamma
     TOTAL_TIMESTEPS = args.total_timesteps
     MEMORY_SIZE = args.buffer_size
@@ -352,6 +386,7 @@ if __name__ == "__main__":
     '''
 
     dqn_algorithm(ENV_NAME=args.env_name,
+                  NUM_ENV=args.num_env,
                   SEED=args.seed,
                   GAMMA = args.gamma,
                   TOTAL_TIMESTEPS = args.total_timesteps,
