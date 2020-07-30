@@ -293,7 +293,7 @@ def dqn_algorithm(ENV_NAME,
                 if SAVE_MODEL:
                     file_name = str(FILE_PATH)+MODEL_FILE_NAME+'.h5'
                     dqn_solver.model.save(file_name)
-                return
+                return dqn_solver.model
             if USE_TARGET_NETWORK and t%TARGET_UPDATE_FREQUENCY==0:
                 dqn_solver.update_target_network()
             # print(t)
@@ -319,11 +319,11 @@ if __name__ == "__main__":
     # DQN algorithms parameters
     parser.add_argument('--env_name', default='CartPole-v0', help='string for a gym environment')
     parser.add_argument('--num_env', type=int, default=8, help='no. for environment vectorization')
-    parser.add_argument('--seed', type=int, default=4, help='seed for pseudo random generator')
-    parser.add_argument('--total_timesteps', type=int, default=300000, help='Total number of timesteps')
+    parser.add_argument('--seed', type=int, default=5, help='seed for pseudo random generator')
+    parser.add_argument('--total_timesteps', type=int, default=250000, help='Total number of timesteps')
     parser.add_argument('--gamma', type=float, default=0.95, help='discount factor')
     parser.add_argument('--buffer_size',  type=int, default=1000, help='Replay buffer size')
-    parser.add_argument('--batch_size',  type=int, default=32, help='batch size for experience replay')
+    parser.add_argument('--batch_size',  type=int, default=128, help='batch size for experience replay')
     parser.add_argument('--exploration_max',  type=float, default=1.0, help='maximum exploration at the begining')
     parser.add_argument('--exploration_min',  type=float, default=0.02, help='minimum exploration at the end')
     parser.add_argument('--exploration_fraction',  type=float, default=0.6, help='fraction of total timesteps on which the exploration decay takes place')
@@ -343,7 +343,7 @@ if __name__ == "__main__":
     parser.add_argument('--double_dqn', type=str2bool, default=False,  help='boolean to specify whether to employ double DQN')
     parser.add_argument('--use_target_network', type=str2bool, default=True,  help='boolean to use target neural network in DQN')
     parser.add_argument('--target_update_frequency',  type=int, default=1000, help='timesteps frequency to do weight update from online network to target network')
-    parser.add_argument('--training_frequency',  type=int, default=100, help='timesteps frequency to train the DQN (experience replay)')
+    parser.add_argument('--training_frequency',  type=int, default=200, help='timesteps frequency to train the DQN (experience replay)')
     parser.add_argument('--load_weights', type=str2bool, default=False,  help='boolean to specify whether to use a prespecified model to initializa the weights of neural network')
     parser.add_argument('--load_weights_model_path', default='results/model0.h5', help='path for the model to use for weight initialization')
     args = parser.parse_args()
@@ -384,7 +384,7 @@ if __name__ == "__main__":
     LOAD_WEIGHTS = args.load_weights
     LOAD_WEIGHTS_MODEL_PATH = args.load_weights_model_path
     '''
-
+    model = \
     dqn_algorithm(ENV_NAME=args.env_name,
                   NUM_ENV=args.num_env,
                   SEED=args.seed,
