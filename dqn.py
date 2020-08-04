@@ -300,7 +300,6 @@ def dqn_algorithm(ENV_NAME,
             if terminal.all():
                 episode_rewards += [0.0]*num_envs
                 break
-    return
 
 def str2bool(v):
     if isinstance(v, bool):
@@ -327,7 +326,7 @@ if __name__ == "__main__":
     parser.add_argument('--exploration_max',  type=float, default=1.0, help='maximum exploration at the begining')
     parser.add_argument('--exploration_min',  type=float, default=0.02, help='minimum exploration at the end')
     parser.add_argument('--exploration_fraction',  type=float, default=0.6, help='fraction of total timesteps on which the exploration decay takes place')
-    parser.add_argument('--output_folder', default='results/', help='output filepath')
+    parser.add_argument('--output_folder', default='results_temp/', help='output filepath')
     parser.add_argument('--save_model', type=str2bool, default=False,  help='boolean to specify whether the model is to be saved')
     parser.add_argument('--model_file_name', default='model', help='name of file to save the model at the end learning')
     parser.add_argument('--log_file_name', default='log', help='name of file to store DQN results')
