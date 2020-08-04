@@ -13,7 +13,7 @@ import argparse
 import gym
 from set_seed import set_seed
 from multiprocessing_env import SubprocVecEnv
-from ParallelEnvWrapper import ParallelEnvWrapper
+from ParallelEnvWrapper import ParallelEnvWrapper 
 
 class DQNSolver:
 
