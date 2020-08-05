@@ -1,0 +1,33 @@
+from dqn import dqn_algorithm
+
+for i in range(4,6):
+    model = \
+    dqn_algorithm(ENV_NAME = 'D_1ph_CK_WELL-v0',
+                  NUM_ENV=50,
+                  SEED=i,
+                  TOTAL_TIMESTEPS = 250000,
+                  GAMMA = 0.95,
+                  MEMORY_SIZE = 1000,
+                  BATCH_SIZE = 128,
+                  EXPLORATION_MAX = 1.0,
+                  EXPLORATION_MIN = 0.02,
+                  EXPLORATION_FRACTION = 0.6,
+                  TRAINING_FREQUENCY = 200,
+                  FILE_PATH = 'D_1ph_CK_WELL/results/',
+                  SAVE_MODEL = True,
+                  MODEL_FILE_NAME = 'model'+str(i),
+                  LOG_FILE_NAME = 'log'+str(i),
+                  TIME_FILE_NAME = 'time'+str(i),
+                  PRINT_FREQ = 1000,
+                  N_EP_AVG = 100,
+                  VERBOSE = 'True',
+                  MLP_LAYERS = [64,64],
+                  MLP_ACTIVATIONS = ['relu','relu'],
+                  LEARNING_RATE = 1e-3,
+                  EPOCHS = 1,
+                  GRAD_CLIP = False,
+                  DOUBLE_DQN = False,
+                  USE_TARGET_NETWORK = True,
+                  TARGET_UPDATE_FREQUENCY = 1000,
+                  LOAD_WEIGHTS = False,
+                  LOAD_WEIGHTS_MODEL_PATH = 'CartPole-v0/results/model'+str(i)+'.h5')
