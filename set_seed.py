@@ -22,3 +22,6 @@ def set_seed(seed_value):
     session_conf = tf.ConfigProto(intra_op_parallelism_threads=1, inter_op_parallelism_threads=1)
     sess = tf.Session(graph=tf.get_default_graph(), config=session_conf)
     tf.keras.backend.set_session(sess)
+
+    import torch
+    torch.manual_seed(seed_value)
