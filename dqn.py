@@ -68,12 +68,13 @@ class DQNSolver:
                     activation=activation, 
                     kernel_initializer=Orthogonal(gain=np.sqrt(2.0)), 
                     bias_initializer=Zeros()))
-            self.model.add(Dense(
-                layer_n, 
-                input_shape=(layer_n,), 
-                activation=activation,
-                kernel_initializer=Orthogonal(gain=np.sqrt(2.0)),
-                bias_initializer=Zeros()))
+            else:
+                self.model.add(Dense(
+                    layer_n, 
+                    input_shape=(layer_n,), 
+                    activation=activation,
+                    kernel_initializer=Orthogonal(gain=np.sqrt(2.0)),
+                    bias_initializer=Zeros()))
         self.model.add(Dense(self.action_space, activation="linear"))
         if self.load_weights:
             self.model.load_weights(self.load_weights_model_path)
