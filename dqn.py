@@ -282,11 +282,11 @@ def dqn_algorithm(ENV_NAME,
                     print('Exploration %: '+str(int(explore_percent[-1]))+' ,Episodes: '+str(episodes[-1])+' ,Mean_reward: '+str(mean100_rew[-1])+' ,timestep: '+str(t)+' , tr_loss: '+str(round(NN_tr_loss[-1],4)))
 
             if t>TOTAL_TIMESTEPS:
-                output_table = np.stack((explore_percent, episodes, mean100_rew, steps, NN_tr_loss))
+                output_table = np.stack((steps, mean100_rew, episodes, explore_percent, NN_tr_loss))
                 if not os.path.exists(FILE_PATH):
                     os.makedirs(FILE_PATH)
                 file_name = str(FILE_PATH)+LOG_FILE_NAME+'.csv'
-                np.savetxt(file_name, np.transpose(output_table), delimiter=',', header='Exploration %,Episodes,Rewards,Timestep,Training Score')
+                np.savetxt(file_name, np.transpose(output_table), delimiter=',', header='Timestep,Rewards,Episodes,Exploration %,Training Score')
                 after = time.time()
                 time_taken = after-before
                 np.save( str(FILE_PATH)+TIME_FILE_NAME, time_taken )
