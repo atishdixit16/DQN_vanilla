@@ -62,6 +62,7 @@ class DQNSolver:
         self.model = Sequential()
         for layer_n, activation, i in zip(self.mlp_layers, self.mlp_activations, range(len(self.mlp_layers))):
             if i==0:
+                last_layer_n = layer_n
                 self.model.add(Dense(
                     layer_n, 
                     input_shape=(self.observation_space,), 
@@ -71,10 +72,11 @@ class DQNSolver:
             else:
                 self.model.add(Dense(
                     layer_n, 
-                    input_shape=(layer_n,), 
+                    input_shape=(last_layer_n,), 
                     activation=activation,
                     kernel_initializer=Orthogonal(gain=np.sqrt(2.0)),
                     bias_initializer=Zeros()))
+                last_layer_n = layer_n
         self.model.add(Dense(self.action_space, activation="linear"))
         if self.load_weights:
             self.model.load_weights(self.load_weights_model_path)
